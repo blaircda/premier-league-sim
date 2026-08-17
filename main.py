@@ -63,13 +63,14 @@ state = {
 }
 
 model_set = {
+#"test": test
 #        "rk_strong":ranking_poisson,
 #        "val_strong":value_poisson,
 #        "rk_val_both": rank_and_value,
 #        "rk_tier_plus": ranking_tier_poisson_delta,
 #        "val_tier_plus": value_tier_poisson_delta,
 #        "log_val_tier_plus": log_value_tier_poisson_delta,
-        "elo_static": elo_to_poisson,
+"elo_static": elo_to_poisson,
 #        "elo_live":elo_to_poisson_live,
 #        "val_extra_goal": value_extra_poisson,
 #        "val_share_lin": value_probs_goals,
@@ -94,7 +95,7 @@ def run_simulations():
 
     Nmodels =len(model_set)
     model_count = 1
-
+    tie_count = 0
     # loop over models
     for model_name, model_fn in model_set.items():
         start = perf_counter()
@@ -105,10 +106,15 @@ def run_simulations():
         for N in range(Nsims):
             if model_name == "elo_live":
                 orig_elo = state["elo"].copy()
-            results = run_season(state, model_fn)
+            results, t = run_season(state, model_fn)
             update_results(results, results_dict)
             if model_name == "elo_live":    
                 state["elo"] = orig_elo.copy()
+
+            tie_count += t
+            if(t):
+                return
+
         # store invariant team data for ease of access
         # for team, res in results_dict.items():
             #res["odds_diff"]  = res["champions"] - Nsims*odds[team]
@@ -122,13 +128,13 @@ def run_simulations():
         elapsed = perf_counter() - start
         print(f"Simulation finished in {elapsed:.6f} s")
         model_count += 1 
-
+    print(tie_count)
     return results_dict
     
 if __name__ == '__main__':
     # run the simulations
     results = run_simulations()
-    print(results)
+    #print(results)
     # save to csv
     #save_results_to_csv(store_results, outcome_data, store_finals, store_sf, model_names)
 

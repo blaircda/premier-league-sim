@@ -4,8 +4,26 @@ def play_game(team1, team2, state, model_fn):
     """
     returns goals only
     """
-    return model_fn(team1, team2, state) 
+    return model_fn(team1, team2, state)
 
+def test(team1, team2, state):
+    scorelines = {
+        ("A", "B"): (1,0),
+        ("A", "C"): (1,0),
+        ("A", "D"): (1,0),
+        ("B", "A"): (0,1),
+        ("C", "A"): (0,1),
+        ("D", "A"): (0,1),
+        ("B", "C"): (0,0),
+        ("B", "D"): (0,0),
+        ("C", "D"): (0,0),
+        ("C", "B"): (1,1),
+        ("D", "B"): (1,1),
+        ("D", "C"): (0,0)
+    }
+
+    return scorelines.get( (team1, team2), (0,0))
+    
 ########################################################################
 # ELO model
 # see https://eloratings.net/about
