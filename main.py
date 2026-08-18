@@ -64,10 +64,10 @@ with open("data/fixtures.csv", newline="") as f:
 #print(f"Setup finished in {elapsed:.6f} s")
 ########################################################################
 
-K = len(teams)+1
+league_size = len(teams)+1
 
 def make_team_stats():
-    return {i: 0 for i in range(1, K)} | {"W": 0, "D": 0, "L": 0, "GF": 0, "GA": 0, "GD": 0, "PTS":0, "PTS_MAX": 0, "PTS_MIN": 1000}
+    return {i: 0 for i in range(1, league_size)} | {"W": 0, "D": 0, "L": 0, "GF": 0, "GA": 0, "GD": 0, "PTS":0, "PTS_MAX": 0, "PTS_MIN": 1000}
 
 def make_posn_stats():
     return {"W": 0, "D": 0, "L": 0, "GF": 0, "GA": 0, "GD": 0, "PTS":0, "PTS_MAX": 0, "PTS_MIN": 1000}
@@ -86,7 +86,7 @@ def run_simulations():
         print(f"Simulating Premier League with game model: {model_name} ({model_count}/{Nmodels})")
         # dict to store basic results direct from simulaton
         team_results = defaultdict(lambda : make_team_stats())
-        posn_results = {i: make_posn_stats() for i in range(1,K)}
+        posn_results = {i: make_posn_stats() for i in range(1,league_size)}
         # run Nsims simulations with the given model
         for N in range(Nsims):
             if model_name == "elo_live":
@@ -100,7 +100,7 @@ def run_simulations():
                 state["elo"] = orig_elo.copy()
 
         for team in teams:
-            for i in range(1,K):
+            for i in range(1,league_size):
                 posn_results[i][team] = team_results[team][i] 
 
         # store invariant team data for ease of access
@@ -127,10 +127,10 @@ if __name__ == '__main__':
         padding = max([ len(team) for team in teams]) + 1
         display_stats = ["PTS", "GF", "GA", "GD"]
         display_extr = ["PTS_MAX", "PTS_MIN"]
-        print(f"{'Team':<{padding}}"+ " ".join(f"{i:^5}" for i in range(1,K)) + " ".join(f"{stat:^7}" for stat in display_stats+display_extr) )      
+        print(f"{'Team':<{padding}}"+ " ".join(f"{i:^5}" for i in range(1,league_size)) + " ".join(f"{stat:^7}" for stat in display_stats+display_extr) )      
         for team, team_data in sorted_data.items():
             print(f"{team:<{padding}}"
-                  + " ".join(f"{team_data[i]*100/Nsims:<5.1f}" for i in range(1,K))
+                  + " ".join(f"{team_data[i]*100/Nsims:<5.2f}" for i in range(1,league_size))
                   + " ".join(f"{team_data[stat]/Nsims:^7.0f}" for stat in display_stats)
                   + " ".join(f"{team_data[stat]:^7.0f}" for stat in display_extr)  
                   )
