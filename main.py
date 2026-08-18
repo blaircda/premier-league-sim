@@ -1,10 +1,9 @@
+import csv
+from time import perf_counter
+from collections import defaultdict
 from config import *
 from tournament import *
 from play_game import *
-#from math import log
-from time import perf_counter
-from collections import defaultdict
-import csv
 
 #start = perf_counter()
 ########################################################################
@@ -24,6 +23,8 @@ with open("data/teams.csv", newline="") as f:
         elos[team] = int(row["elo"])
         values[team] = int(row["value"])
 
+league_size = len(teams)+1
+
 # store invariant data used by simulation in state dictionary
 state = {
     "teams": teams,
@@ -32,17 +33,10 @@ state = {
 }
 
 model_set = {
-#"test": test
-#        "rk_strong":ranking_poisson,
-#        "val_strong":value_poisson,
-#        "rk_val_both": rank_and_value,
-#        "rk_tier_plus": ranking_tier_poisson_delta,
-#        "val_tier_plus": value_tier_poisson_delta,
-#        "log_val_tier_plus": log_value_tier_poisson_delta,
         "elo_static": elo_to_poisson,
-        "elo_live":elo_to_poisson_live,
+        "elo_live": elo_to_poisson_live,
 #        "val_extra_goal": value_extra_poisson,
-#         "val_share_lin": value_probs_goals,
+#        "val_share_lin": value_probs_goals,
 #        "val_share_elo": value_probs_elo
 }
 
@@ -64,13 +58,11 @@ with open("data/fixtures.csv", newline="") as f:
 #print(f"Setup finished in {elapsed:.6f} s")
 ########################################################################
 
-league_size = len(teams)+1
-
-def make_team_stats():
-    return {i: 0 for i in range(1, league_size)} | {"W": 0, "D": 0, "L": 0, "GF": 0, "GA": 0, "GD": 0, "PTS":0, "PTS_MAX": 0, "PTS_MIN": 1000}
-
+# helper functions for creating defaultdicts to store simulation results
 def make_posn_stats():
     return {"W": 0, "D": 0, "L": 0, "GF": 0, "GA": 0, "GD": 0, "PTS":0, "PTS_MAX": 0, "PTS_MIN": 1000}
+def make_team_stats():
+    return {i: 0 for i in range(1, league_size)} | make_posn_stats()
 
 # main simulation function
 def run_simulations():
@@ -84,7 +76,7 @@ def run_simulations():
     for model_name, model_fn in model_set.items():
         start = perf_counter()
         print(f"Simulating Premier League with game model: {model_name} ({model_count}/{Nmodels})")
-        # dict to store basic results direct from simulaton
+        # dicts to store simulation results
         team_results = defaultdict(lambda : make_team_stats())
         posn_results = {i: make_posn_stats() for i in range(1,league_size)}
         # run Nsims simulations with the given model
@@ -92,13 +84,15 @@ def run_simulations():
             if model_name == "elo_live":
                 orig_elo = state["elo"].copy()
 
+            # run a season
             results = run_season(state, model_fn, fixtures=fixtures)
-
+            # add season results to team_results, posn_results
             update_results(results, team_results, posn_results)
 
             if model_name == "elo_live":    
                 state["elo"] = orig_elo.copy()
 
+        # add team position results to the posn result dict
         for team in teams:
             for i in range(1,league_size):
                 posn_results[i][team] = team_results[team][i] 
@@ -119,8 +113,8 @@ def run_simulations():
 if __name__ == '__main__':
     # run the simulations
     store_team_results, store_posn_results = run_simulations()
-    #print(*[ (team, results[team]) for team in teams], sep="\n")
 
+    # display results direct to terminal
     for model_name, model_data in store_team_results.items():
         print(f"\nResults for model: {model_name}")
         sorted_data = { k:v for k, v in sorted(model_data.items(), key=lambda item: (item[1]["PTS"]), reverse=True)}
@@ -144,7 +138,7 @@ if __name__ == '__main__':
                   + " ".join(f"{posn_data[stat]:^7.0f}" for stat in display_extr)  
                   )
 
-    # save to csv
+    # save to csv - not implemented here yet
     #save_results_to_csv(store_results, model_names)
 
         

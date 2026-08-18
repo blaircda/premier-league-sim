@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.stats import skellam
 
 def play_game(team1, team2, state, model_fn):
     """
@@ -8,6 +7,9 @@ def play_game(team1, team2, state, model_fn):
     return model_fn(team1, team2, state)
 
 def test(team1, team2, state):
+    """
+    test function for generating scenario with multiple tied teams - ignore
+    """
     scorelines = {
         ("A", "B"): (1,0),
         ("A", "C"): (1,0),
@@ -26,9 +28,7 @@ def test(team1, team2, state):
     return scorelines.get( (team1, team2), (0,0))
     
 ########################################################################
-# ELO model
-# see https://eloratings.net/about
-# note: in Elo win expectancy, draws count as 0.5
+# ELO models
 ########################################################################
 
 # LOOKUP TABLE FOR WIN EX
@@ -93,6 +93,7 @@ def elo_to_poisson(team1, team2, state):
     model function to simulate elo predicted result using Poisson distributions
     """
     home_adv = 38
+    # inferred from clubelo.com 25/26 final round games
     diff = state["elo"][team1] - state["elo"][team2] + home_adv
     wex = diff_to_w[diff+2000]
     if wex < 0.5:
@@ -114,17 +115,17 @@ def elo_to_poisson(team1, team2, state):
 # GD factor = Sqrt(Actual GD) / Sum_{All Possible GDs} ( Sqrt(Poss. GD) Prob(Poss. GD)/Prob(Result) )
 # so you need to know the prob of Poss. GD for a particular rating difference
 
-# turn this into a lookup table
-def goal_diff_factor_sk(lambda1,lambda2):
-    """
-    given scorelines generated using poisson vars lambda1, lambda2
-    assuming that the result was a win for team with lambda1
-    we want to compute a goal difference factor defined as:
-    Sum_{All Possible GDs} ( Sqrt(Poss. GD) Prob(Poss. GD)/Prob(Result) )
-    """
-    sum_over_goal_diffs = sum(np.sqrt(k)*skellam.pmf(k, lambda1, lambda2) for k in range(1, 20))
-    prob_win =  1 - skellam.cdf(0, lambda1, lambda2)
-    return sum_over_goal_diffs / prob_win
+# turned this into a lookup table 
+#def goal_diff_factor_sk(lambda1,lambda2):
+#    """
+#    given scorelines generated using poisson vars lambda1, lambda2
+#    assuming that the result was a win for team with lambda1
+#    this function computes a goal difference factor defined as:
+#    Sum_{All Possible GDs} ( Sqrt(Poss. GD) Prob(Poss. GD)/Prob(Result) )
+#    """
+    #sum_over_goal_diffs = sum(np.sqrt(k)*skellam.pmf(k, lambda1, lambda2) for k in range(1, 20))
+    #prob_win =  1 - skellam.cdf(0, lambda1, lambda2)
+    #return sum_over_goal_diffs / prob_win
 
 goal_factor_lookup = {(1.4, 1.4): 1.2629944507326731,
  (1.4, 1.36): 1.2642408344972462,
@@ -283,10 +284,8 @@ def update_elo(team1, team2, state, wex1, wex2, g1, g2):
     state["elo"][team1] =  state["elo"][team1] + int(Delta)
     state["elo"][team2] =  state["elo"][team2] - int(Delta)
     
-
-
 ########################################################################
-# stuff 
+# Other Models 
 ########################################################################
 # expected values calculated using https://footystats.org/stats/common-score
 lambda_home_data = 1.64
@@ -334,7 +333,6 @@ def sample_goals(*comparisons, advantage_type):
 ########################################################################
 # experimental value based models
 ########################################################################
-
 
 def value_poisson(team1, team2, state):
     """

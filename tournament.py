@@ -4,6 +4,10 @@ from config import *
 import itertools
 
 def play(team1, team2, state, model, table, matches):
+    """
+    generates the result of team1 vs team2
+    updates table and records the result in matches
+    """
     g1,g2 = play_game(team1, team2, state, model)
     # store matches for revisiting when computing ranking of tied teams
     matches[(team1,team2)] = {team1: g1, team2:g2}
@@ -29,6 +33,12 @@ def play(team1, team2, state, model, table, matches):
         #table[team2]["PTS"] += 1
 
 def run_season(state, model, fixtures = None):
+    """
+    simulates a season of the Premier League
+    optionally can do this following the official sequence of fixtures (gameweek by gameweek)
+    allowing one to update ELO ratings etc throughout the simulated season
+    returns the final league table
+    """
     tie = 0
     # iterate over groups and matches therein
     ts = state["teams"]
@@ -91,6 +101,23 @@ def run_season(state, model, fixtures = None):
 
 
 def h2h(tied_teams, table, matches, criteria):
+    """
+    input:
+    tied_teams: teams that cannot be separated by PTS, GD, GD
+    table: the full league table for writing tie-breaking criteria results to
+    matches: the list of matches to access the head-to-head record of the tied teams
+    criteria: either "points" meaning points in head-to-head matches
+              or "goals" meaning AWAY goals in head-to-head matches
+
+    the function is first called with criteria = "points"
+    it tries to separate the tied_teams via this criteria, calling itself on subgroups
+    once it becomes impossible for (a subgroup of the tied teams) it calls itself with the "goals" criteria
+    etc.
+    if no separation is possible, and if a meaningful result (relegation, European qualification) is affected, the rules call for a playoff at this point...
+    ... I do not implement a playoff considering this a statistically unlikely edge case...
+    (indeed technically if a meaningful result is not affected these head-to-head tiebreaks are not even meant to be invoked)
+    """
+    # set the key in table associated with the criteria 
     if criteria=="points":
         stat = "TPTS"
     elif criteria=="goals":
@@ -99,11 +126,11 @@ def h2h(tied_teams, table, matches, criteria):
     #print(f"\nTie breaking on head-to-head {criteria} for the following:")
     #print(*[(team, table[team]) for team in tied_teams], sep="\n")
     n = len(tied_teams)
-    if n>2:
-        print(f"3way tie breaking on head-to-head {criteria} for the following:")
-        print(*[(team, table[team]) for team in tied_teams], sep="\n")
+    #if n>2:
+    #    print(f"3way tie breaking on head-to-head {criteria} for the following:")
+    #    print(*[(team, table[team]) for team in tied_teams], sep="\n")
 
-    # reset the tie breakers for the teams in questions
+    # reset the tie breakers for the teams in question
     for team in tied_teams:
         table[team]["TPTS"] = 0
         table[team]["TGAway"] = 0
@@ -111,8 +138,8 @@ def h2h(tied_teams, table, matches, criteria):
     # compute the minileague
     # writing directly to table
     for team1, team2 in itertools.combinations(tied_teams,2):
-        tiebreak(team1, team2, table, matches, on=criteria)
-        tiebreak(team2, team1, table, matches, on=criteria)
+        get_tiebreak_result(team1, team2, table, matches, criteria=criteria)
+        get_tiebreak_result(team2, team1, table, matches, criteria=criteria)
         
     tcrit = { table[team][stat] for team in tied_teams }
 
@@ -127,20 +154,24 @@ def h2h(tied_teams, table, matches, criteria):
             pass
             #print("Playoff required")
     # otherwise some teams can be separated, others not, we keep trying
-    # I interpret the rules as always trying to applying points criteria first to a tied group
+    # I interpret the rules as always trying to apply points criteria first to a tied group
     else:
         for i in tcrit:
             still_tied = [team for team in tied_teams if table[team][stat] == i]
             if len(still_tied) > 1:
                 h2h(still_tied, table, matches, criteria="points")
                 
-def tiebreak(team1, team2, table, matches, on):
+def get_tiebreak_result(team1, team2, table, matches, criteria):
+    """
+    retrieves match data for team1 vs team2
+    and writes relevant tiebreak criteria to table 
+    """
     #print(matches[(team1, team2)])
     g1,g2 = matches[(team1,team2)][team1], matches[(team1,team2)][team2]
     # only away goals are relevant
-    if on=="goals":
+    if criteria=="goals":
         table[team2]["TGAway"] += g2
-    elif on=="points":
+    elif criteria=="points":
         if (g1>g2):
             table[team1]["TPTS"] += 3
         elif (g1<g2):
