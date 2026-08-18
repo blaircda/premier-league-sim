@@ -1,21 +1,21 @@
-team,elo
-Arsenal,2005
-Aston Villa,1882
-Bournemouth,1836
-Brentford,1813
-Brighton,1837
-Chelsea,1856
-Coventry,1674
-Crystal Palace,1806
-Everton,1781
-Fulham,1788
-Hull City,1582
-Ipswich,1663
-Leeds,1770
-Liverpool,1904
-Man City,1992
-Man United,1876
-Nottingham Forest,1794
-Newcastle,1854
-Sunderland,1707
-Tottenham,1793
+team,team_short,elo,value
+Arsenal,ARS,2005,1410
+Aston Villa,AST,1882,499
+Bournemouth,BOU,1836,566
+Brentford,BRE,1813,565
+Brighton,BRI,1837,620
+Chelsea,CHE,1856,1360
+Coventry,COV,1674,265
+Crystal Palace,CRY,1806,516
+Everton,EVE,1781,471
+Fulham,FUL,1788,344
+Hull City,HUL,1582,124
+Ipswich,IPS,1663,278
+Leeds,LEE,1770,427
+Liverpool,LIV,1904,1000
+Man City,MNC,1992,1470
+Man United,MNU,1876,874
+Nottingham Forest,NOT,1794,560
+Newcastle,NEW,1854,566
+Sunderland,SUN,1707,381
+Tottenham,TOT,1793,909
