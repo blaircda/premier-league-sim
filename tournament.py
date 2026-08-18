@@ -28,7 +28,6 @@ def play(team1, team2, state, model, table, matches):
         #table[team1]["PTS"] += 1
         #table[team2]["PTS"] += 1
 
-
 def run_season(state, model, fixtures = None):
     tie = 0
     # iterate over groups and matches therein
@@ -48,8 +47,7 @@ def run_season(state, model, fixtures = None):
     for team in ts:
         table[team]["GD"] = table[team]["GF"] - table[team]["GA"]
         table[team]["PTS"] = 3*table[team]["W"] + table[team]["D"]
-         
-
+        
     # If points and goal difference are both equal:
     # the number of goals scored for the team ("GF")
     # then:
@@ -87,10 +85,8 @@ def run_season(state, model, fixtures = None):
     table = list(sorted(table.items(),
         key=lambda item: (item[1]["PTS"], item[1]["GD"], item[1]["GF"], item[1]["TPTS"], item[1]["TGAway"]
         ), reverse=True))
-
     #print(f"\nFinal table:")
     #print(*table, sep="\n")
-
     return table
 
 
@@ -152,7 +148,6 @@ def tiebreak(team1, team2, table, matches, on):
         else:
             table[team1]["TPTS"] += 1
             table[team2]["TPTS"] += 1
-
 
 def update_results(table, team_results, posn_results):
     """

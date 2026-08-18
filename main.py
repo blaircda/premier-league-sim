@@ -7,12 +7,8 @@ from collections import defaultdict
 import csv
 
 #start = perf_counter()
-
 ########################################################################
 # set up
-
-#print("Setting up Premier League")
-
 teams = []
 elos = {}
 team_short = {}
@@ -54,7 +50,6 @@ model_set = {
 model_names = list(model_set.keys())
 # model_set = {k:v for d in all_models for k,v in d.items()}
 
-
 # fixtures
 fixtures = {}
 with open("data/fixtures.csv", newline="") as f:
@@ -79,11 +74,9 @@ def make_posn_stats():
 
 # main simulation function
 def run_simulations():
-
-    store_team_results, store_posn_results = {}, {}
-    
     print(f"Nsims: {Nsims}")
 
+    store_team_results, store_posn_results = {}, {}
     Nmodels =len(model_set)
     model_count = 1
 
@@ -110,7 +103,6 @@ def run_simulations():
             for i in range(1,K):
                 posn_results[i][team] = team_results[team][i] 
 
-
         # store invariant team data for ease of access
         # for team, res in results.items():
             #res["team"] = team
@@ -128,7 +120,6 @@ if __name__ == '__main__':
     # run the simulations
     store_team_results, store_posn_results = run_simulations()
     #print(*[ (team, results[team]) for team in teams], sep="\n")
-
 
     for model_name, model_data in store_team_results.items():
         print(f"\nResults for model: {model_name}")
